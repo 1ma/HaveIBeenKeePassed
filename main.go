@@ -18,9 +18,5 @@ func main() {
 		panic(err)
 	}
 
-	db.UnlockProtectedEntries()
-
-	entry := db.Content.Root.Groups[0].Entries[0]
-	fmt.Println(entry.GetTitle())
-	fmt.Println(entry.GetPassword())
+	fmt.Println(string(db.Content.RawData))
 }
