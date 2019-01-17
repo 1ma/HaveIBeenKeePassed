@@ -1,22 +1,24 @@
 package main
 
-
 import (
 	"fmt"
-	"github.com/tobischo/gokeepasslib/v2"
+	"github.com/1ma/HaveIBeenKeePassed/keepass"
 	"os"
 )
 
 func main() {
-	file, _ := os.Open("/home/marcel/workspace/HaveIBeenKeePassed/Sample.kdbx")
-
-	db := gokeepasslib.NewDatabase()
-	db.Credentials = gokeepasslib.NewPasswordCredentials("1234")
-	err := gokeepasslib.NewDecoder(file).Decode(db)
+	file, err := os.Open("/home/marcel/workspace/HaveIBeenKeePassed/Sample.kdbx")
+	defer file.Close()
 
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println(string(db.Content.RawData))
+	raw, err := keepass.Decode(file, "1234")
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(string(raw))
 }
