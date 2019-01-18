@@ -7,6 +7,25 @@ import (
 	"io"
 )
 
+// This function consumes an io.Reader pointing to a KeePass2 XML
+// document, and queues in the channel all the active password
+// entries it finds as it parses the document.
+//
+// Active passwords are found inside Entry elements that are
+// not nested in a History element.
+//
+// Sample layout:
+//
+// <Entry>
+//   <String>
+//     <Key>Password</Key>
+//     <Value ProtectInMemory="True">12345</Value>
+//   </String>
+//   <String>
+//     <Key>Title</Key>
+//     <Value>Sample Entry #2</Value>
+//   </String>
+// </Entry>
 func Parse(r io.Reader, c chan<- types.Entry) {
 	defer close(c)
 
@@ -59,10 +78,6 @@ func Parse(r io.Reader, c chan<- types.Entry) {
 				entry.Password = string(t)
 			case "Title":
 				entry.Title = string(t)
-			case "URL":
-				entry.URL = string(t)
-			case "UserName":
-				entry.UserName = string(t)
 			default:
 			}
 
