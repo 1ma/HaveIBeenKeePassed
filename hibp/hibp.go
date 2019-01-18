@@ -24,7 +24,8 @@ func Check(c <-chan types.Entry) {
 
 		res, err := client.Do(req)
 		if err != nil {
-			panic(err)
+			fmt.Printf("%s: API ERROR (could not check password)\n", entry.Title)
+			continue
 		}
 
 		compromised := false

@@ -18,7 +18,8 @@ func main() {
 	defer file.Close()
 
 	if err != nil {
-		panic(err)
+		fmt.Printf("%s: No such file\n", os.Args[1])
+		os.Exit(1)
 	}
 
 	c := make(chan types.Entry, 64)
