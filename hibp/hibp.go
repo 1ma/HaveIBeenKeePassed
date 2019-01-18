@@ -13,11 +13,12 @@ import (
 )
 
 func Check(c <-chan types.Entry) {
+	client := http.DefaultClient
+
 	for entry := range c {
 		rawSHA1 := sha1.Sum([]byte(entry.Password))
 		hexSHA1 := strings.ToUpper(hex.EncodeToString(rawSHA1[:]))
 
-		client := http.DefaultClient
 		req, _ := http.NewRequest("GET", "https://api.pwnedpasswords.com/range/"+hexSHA1[:5], nil)
 		req.Header.Set("User-Agent", "HaveIBeenKeePassed/0.1")
 
