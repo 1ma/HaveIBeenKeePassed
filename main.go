@@ -16,11 +16,7 @@ func main() {
 	}
 
 	c := make(chan types.Entry, 128)
-	err = sax.Parse(file, c)
-
-	if err != nil {
-		panic(err)
-	}
+	go sax.Parse(file, c)
 
 	for entry := range c {
 		fmt.Printf("%+v\n", entry)

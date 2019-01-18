@@ -7,7 +7,7 @@ import (
 	"io"
 )
 
-func Parse(r io.Reader, c chan<- types.Entry) error {
+func Parse(r io.Reader, c chan<- types.Entry) {
 	defer close(c)
 
 	key := ""
@@ -25,7 +25,7 @@ func Parse(r io.Reader, c chan<- types.Entry) error {
 		if err == io.EOF {
 			break
 		} else if err != nil {
-			return err
+			panic(err)
 		}
 
 		switch t := token.(type) {
@@ -86,6 +86,4 @@ func Parse(r io.Reader, c chan<- types.Entry) error {
 			}
 		}
 	}
-
-	return nil
 }
