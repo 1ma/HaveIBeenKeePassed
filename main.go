@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/1ma/HaveIBeenKeePassed/hibp"
 	"github.com/1ma/HaveIBeenKeePassed/sax"
 	"github.com/1ma/HaveIBeenKeePassed/types"
@@ -9,7 +10,8 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		panic("need at least one argument")
+		fmt.Printf("Usage: %s filepath.xml\n", os.Args[0])
+		os.Exit(1)
 	}
 
 	file, err := os.Open(os.Args[1])
