@@ -3,14 +3,15 @@ package main
 import (
 	"fmt"
 	"github.com/1ma/HaveIBeenKeePassed/hibp"
-	"github.com/1ma/HaveIBeenKeePassed/sax"
-	"github.com/1ma/HaveIBeenKeePassed/types"
+	"github.com/1ma/HaveIBeenKeePassed/keepass"
+	"github.com/tobischo/gokeepasslib/v2"
+	"golang.org/x/crypto/ssh/terminal"
 	"os"
 )
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Printf("Usage: %s filepath.xml\n", os.Args[0])
+		fmt.Printf("Usage: %s database.kdbx\n", os.Args[0])
 		os.Exit(1)
 	}
 
@@ -22,9 +23,18 @@ func main() {
 
 	defer file.Close()
 
-	c := make(chan types.Entry, 64)
+	fmt.Print("Enter Masker Key: ")
+	mk, _ := terminal.ReadPassword(0)
+	fmt.Println()
 
-	go sax.Parse(file, c)
+	db := gokeepasslib.NewDatabase()
+	db.Credentials = gokeepasslib.NewPasswordCredentials(string(mk))
+	err = gokeepasslib.NewDecoder(file).Decode(db)
 
-	hibp.Check(c)
+	if err != nil {
+		fmt.Printf("%s: Could not decrypt database\n", os.Args[1])
+		os.Exit(1)
+	}
+
+	hibp.Check(keepass.Parse(db))
 }
