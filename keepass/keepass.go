@@ -6,32 +6,34 @@ import (
 )
 
 func Parse(db *gokeepasslib.Database) <-chan types.Entry {
-	c := make(chan types.Entry, 1024)
-	_ = db.UnlockProtectedEntries()
-	parseGroups(db.Content.Root.Groups, c)
+	c := make(chan types.Entry, 4)
 
-	close(c)
+	go start(db, c)
+
 	return c
 }
 
-func parseGroups(gs []gokeepasslib.Group, c chan<- types.Entry) {
-	for i := range gs {
-		parseGroup(&gs[i], c)
-	}
+func start(db *gokeepasslib.Database, c chan<- types.Entry) {
+	_ = db.UnlockProtectedEntries()
+
+	parseGroup(&db.Content.Root.Groups[0], c)
+
+	close(c)
 }
 
 func parseGroup(g *gokeepasslib.Group, c chan<- types.Entry) {
-	if g.Groups != nil {
-		parseGroups(g.Groups, c)
+	for i := range g.Groups {
+		parseGroup(&g.Groups[i], c)
 	}
 
-	es := g.Entries
-	if es == nil {
-		return
-	}
+	parseEntries(g.Entries, c)
+}
 
-	for i := range es {
-		e := types.Entry{Title: es[i].GetTitle(), Password:es[i].GetPassword()}
-		c <- e
+func parseEntries(entries []gokeepasslib.Entry, c chan<- types.Entry) {
+	for i := range entries {
+		c <- types.Entry{
+			Title: entries[i].GetTitle(),
+			Password:entries[i].GetPassword(),
+		}
 	}
 }
