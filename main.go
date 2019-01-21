@@ -38,7 +38,7 @@ func main() {
 
 	c := make(chan gokeepasslib.Entry, 128)
 
-	go keepass2.Parse(db, c)
+	keepass2.Parse(db, c)
 
 	hibp.Check(c)
 }

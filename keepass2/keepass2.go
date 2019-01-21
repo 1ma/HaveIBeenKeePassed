@@ -11,23 +11,21 @@ import "github.com/tobischo/gokeepasslib/v2"
 //
 // Once it finishes it will close the channel.
 func Parse(db *gokeepasslib.Database, c chan<- gokeepasslib.Entry) {
-	_ = db.UnlockProtectedEntries()
+	go func() {
+		_ = db.UnlockProtectedEntries()
 
-	parseGroup(&db.Content.Root.Groups[0], c)
+		parse(&db.Content.Root.Groups[0], c)
 
-	close(c)
+		close(c)
+	}()
 }
 
-func parseGroup(g *gokeepasslib.Group, c chan<- gokeepasslib.Entry) {
+func parse(g *gokeepasslib.Group, c chan<- gokeepasslib.Entry) {
 	for i := range g.Groups {
-		parseGroup(&g.Groups[i], c)
+		parse(&g.Groups[i], c)
 	}
 
-	parseEntries(g.Entries, c)
-}
-
-func parseEntries(entries []gokeepasslib.Entry, c chan<- gokeepasslib.Entry) {
-	for i := range entries {
-		c <- entries[i]
+	for i := range g.Entries {
+		c <- g.Entries[i]
 	}
 }
