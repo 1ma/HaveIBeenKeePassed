@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/1ma/HaveIBeenKeePassed/hibp"
-	"github.com/1ma/HaveIBeenKeePassed/keepass"
+	"github.com/1ma/HaveIBeenKeePassed/keepass2"
 	"github.com/tobischo/gokeepasslib/v2"
 	"golang.org/x/crypto/ssh/terminal"
 	"os"
@@ -36,5 +36,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	hibp.Check(keepass.Parse(db))
+	c := make(chan gokeepasslib.Entry, 128)
+
+	go keepass2.Parse(db, c)
+
+	hibp.Check(c)
 }
