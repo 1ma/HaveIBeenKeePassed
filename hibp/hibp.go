@@ -1,5 +1,5 @@
 // Package hibp encapsulates all code related to communicating
-// with the HaveIBeenPwned API and parsing the HTTP responses.
+// with the HaveIBeenPwned API and parsing its HTTP responses.
 package hibp
 
 import (
@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/tobischo/gokeepasslib/v2"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -19,30 +20,41 @@ func Check(c <-chan gokeepasslib.Entry) {
 		rawSHA1 := sha1.Sum([]byte(entry.GetPassword()))
 		hexSHA1 := strings.ToUpper(hex.EncodeToString(rawSHA1[:]))
 
-		req, _ := http.NewRequest("GET", "https://api.pwnedpasswords.com/range/"+hexSHA1[:5], nil)
-		req.Header.Set("User-Agent", "HaveIBeenKeePassed/0.1")
-
-		res, err := client.Do(req)
+		body, err := attackHIBPApi(hexSHA1[:5], client)
 		if err != nil {
 			fmt.Printf("%s: API ERROR (could not check password)\n", entry.GetTitle())
 			continue
 		}
 
-		compromised := false
-		scn := bufio.NewScanner(res.Body)
-		for scn.Scan() {
-			if hexSHA1[5:] == scn.Text()[:35] {
-				compromised = true
-				break
-			}
-		}
-
-		_ = res.Body.Close()
-
-		if compromised == true {
+		if isCompromised(hexSHA1[5:], body) {
 			fmt.Printf("%s: COMPROMISED (%s)\n", entry.GetTitle(), entry.GetPassword())
 		} else {
 			fmt.Printf("%s: SAFE\n", entry.GetTitle())
 		}
 	}
+}
+
+func attackHIBPApi(prefix string, client *http.Client) (io.ReadCloser, error) {
+	req, _ := http.NewRequest("GET", "https://api.pwnedpasswords.com/range/"+prefix, nil)
+	req.Header.Set("User-Agent", "HaveIBeenKeePassed/0.1")
+
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.Body, nil
+}
+
+func isCompromised(suffix string, content io.ReadCloser) bool {
+	defer content.Close()
+
+	scn := bufio.NewScanner(content)
+	for scn.Scan() {
+		if suffix == scn.Text()[:35] {
+			return true
+		}
+	}
+
+	return false
 }
