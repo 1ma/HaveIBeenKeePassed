@@ -23,7 +23,7 @@ func main() {
 
 	defer file.Close()
 
-	fmt.Print("Enter Masker Key: ")
+	fmt.Print("Enter Master Key: ")
 	mk, _ := terminal.ReadPassword(0)
 	fmt.Println()
 
